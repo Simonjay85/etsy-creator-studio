@@ -7,6 +7,10 @@ import {
   drawCharSheetThumbnail,
   drawQuoteThumbnail,
   drawInfoThumbnail,
+  drawAlphabetShowcase,
+  drawWordPairingSlide,
+  drawLowercaseSlide,
+  drawSizingSlide,
 } from '@/components/FontCanvas';
 
 type BgStyle = 'pastel-pink' | 'cream' | 'dark' | 'pastel-green' | 'pastel-blue';
@@ -34,30 +38,42 @@ export default function FontCreatorPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [toast, setToast] = useState('');
 
-  const introRef = useRef<HTMLCanvasElement>(null);
-  const charRef = useRef<HTMLCanvasElement>(null);
-  const quoteRef = useRef<HTMLCanvasElement>(null);
-  const infoRef = useRef<HTMLCanvasElement>(null);
+  const introRef  = useRef<HTMLCanvasElement>(null);
+  const charRef   = useRef<HTMLCanvasElement>(null);
+  const quoteRef  = useRef<HTMLCanvasElement>(null);
+  const infoRef   = useRef<HTMLCanvasElement>(null);
+  const alphaRef  = useRef<HTMLCanvasElement>(null);
+  const wordRef   = useRef<HTMLCanvasElement>(null);
+  const lowRef    = useRef<HTMLCanvasElement>(null);
+  const sizeRef   = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const thumbRefs = [
-    { ref: introRef, label: 'Intro Slide', key: 'intro' },
-    { ref: charRef, label: 'Character Sheet', key: 'charsheet' },
-    { ref: quoteRef, label: 'Quote Mockup', key: 'quote' },
-    { ref: infoRef, label: "Whats Included", key: 'info' },
+    { ref: introRef,  label: 'Intro — Introducing', key: 'intro' },
+    { ref: charRef,   label: 'Full Character Sheet', key: 'charsheet' },
+    { ref: quoteRef,  label: 'Big Quote Showcase',   key: 'quote' },
+    { ref: wordRef,   label: 'Font in Use',          key: 'wordpair' },
+    { ref: alphaRef,  label: 'A–Z Alphabet Grid',    key: 'alpha' },
+    { ref: lowRef,    label: 'Lowercase Beauty',     key: 'lowercase' },
+    { ref: sizeRef,   label: 'Scale & Versatility',  key: 'sizing' },
+    { ref: infoRef,   label: "What's Included",      key: 'info' },
   ];
 
   const regenerateThumbnails = useCallback(() => {
     if (!fontFamilyName) return;
     setGenerating(true);
     const opts = { fontName, fontStyle, quoteText, bgStyle, fontFamilyName };
-    setTimeout(() => {
-      if (introRef.current) drawIntroThumbnail(introRef.current, opts);
-      if (charRef.current) drawCharSheetThumbnail(charRef.current, opts);
-      if (quoteRef.current) drawQuoteThumbnail(quoteRef.current, opts);
-      if (infoRef.current) drawInfoThumbnail(infoRef.current, opts);
-      setGenerating(false);
-    }, 50);
+
+    if (introRef.current)  drawIntroThumbnail(introRef.current, opts);
+    if (charRef.current)   drawCharSheetThumbnail(charRef.current, opts);
+    if (quoteRef.current)  drawQuoteThumbnail(quoteRef.current, opts);
+    if (infoRef.current)   drawInfoThumbnail(infoRef.current, opts);
+    if (alphaRef.current)  drawAlphabetShowcase(alphaRef.current, opts);
+    if (wordRef.current)   drawWordPairingSlide(wordRef.current, opts);
+    if (lowRef.current)    drawLowercaseSlide(lowRef.current, opts);
+    if (sizeRef.current)   drawSizingSlide(sizeRef.current, opts);
+
+    setGenerating(false);
   }, [fontFamilyName, fontName, fontStyle, quoteText, bgStyle]);
 
   useEffect(() => {
@@ -136,11 +152,11 @@ export default function FontCreatorPage() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
   const bgOptions: { value: BgStyle; label: string; preview: string }[] = [
-    { value: 'pastel-pink', label: 'Pastel Pink', preview: '#FDE8EE' },
-    { value: 'cream', label: 'Cream', preview: '#FFF8EE' },
-    { value: 'dark', label: 'Dark', preview: '#1A1225' },
+    { value: 'pastel-pink',  label: 'Pastel Pink',  preview: '#FDE8EE' },
+    { value: 'cream',        label: 'Cream',        preview: '#FFF8EE' },
+    { value: 'dark',         label: 'Dark',         preview: '#1A1225' },
     { value: 'pastel-green', label: 'Pastel Green', preview: '#E8F8F0' },
-    { value: 'pastel-blue', label: 'Pastel Blue', preview: '#E8EEF8' },
+    { value: 'pastel-blue',  label: 'Pastel Blue',  preview: '#E8EEF8' },
   ];
 
   return (
@@ -149,7 +165,7 @@ export default function FontCreatorPage() {
       <div style={{ width: 290, flexShrink: 0, background: 'var(--bg-surface)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--border)' }}>
           <h2 style={{ fontSize: 18, fontWeight: 700 }}>🔤 Font Tool</h2>
-          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>Upload font, customize & generate</p>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>Upload font, customize &amp; generate</p>
         </div>
         <div className="scroll-panel" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Upload */}
@@ -184,7 +200,7 @@ export default function FontCreatorPage() {
           <div><label className="label">Style / Vibe</label><input className="input" placeholder="e.g. Retro Groovy, Bold Script..." value={fontStyle} onChange={e => setFontStyle(e.target.value)} /></div>
           <div>
             <label className="label">Quote Text (Slide 3)</label>
-            <textarea className="input" placeholder="YOU ARE MADE OF MAGIC" value={quoteText} onChange={e => setQuoteText(e.target.value)} rows={2} style={{ resize: 'vertical' }} />
+            <textarea className="input" placeholder="Hello Beautiful World" value={quoteText} onChange={e => setQuoteText(e.target.value)} rows={2} style={{ resize: 'vertical' }} />
           </div>
 
           {/* BG Swatches */}
@@ -192,13 +208,18 @@ export default function FontCreatorPage() {
             <label className="label">Background Style</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {bgOptions.map(opt => (
-                <button key={opt.value} onClick={() => setBgStyle(opt.value)} title={opt.label} style={{ width: 32, height: 32, borderRadius: '50%', background: opt.preview, border: bgStyle === opt.value ? '3px solid var(--accent)' : '2px solid var(--border)', cursor: 'pointer', transition: 'all 0.15s', boxShadow: bgStyle === opt.value ? '0 0 0 2px rgba(192,132,252,0.4)' : 'none' }} />
+                <button key={opt.value} onClick={() => setBgStyle(opt.value)} title={opt.label} style={{
+                  width: 32, height: 32, borderRadius: '50%', background: opt.preview,
+                  border: bgStyle === opt.value ? '3px solid var(--accent)' : '2px solid var(--border)',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                  boxShadow: bgStyle === opt.value ? '0 0 0 2px rgba(192,132,252,0.4)' : 'none'
+                }} />
               ))}
             </div>
           </div>
 
           <button className="btn btn-secondary" style={{ width: '100%' }} onClick={regenerateThumbnails} disabled={!fontLoaded}>
-            <RefreshCw size={14} />Regenerate
+            <RefreshCw size={14} />Regenerate All
           </button>
           <div className="divider" style={{ margin: 0 }} />
           <button className="btn btn-primary" style={{ width: '100%' }} onClick={downloadAll} disabled={!fontLoaded}>
@@ -207,12 +228,12 @@ export default function FontCreatorPage() {
         </div>
       </div>
 
-      {/* CENTER: Canvas */}
+      {/* CENTER: Canvas grid */}
       <div style={{ flex: 1, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
             <h3 style={{ fontSize: 16, fontWeight: 700 }}>Thumbnails</h3>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>2000 × 2000px · Etsy standard</p>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>2000 × 2000px · Etsy standard · 8 slides</p>
           </div>
           {generating && <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent)', fontSize: 13 }}><div className="spinner" style={{ width: 16, height: 16 }} />Rendering…</div>}
         </div>
@@ -234,7 +255,7 @@ export default function FontCreatorPage() {
             <ImageIcon size={48} style={{ opacity: 0.3 }} />
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>No font loaded</div>
-              <div style={{ fontSize: 13 }}>Upload a font file to generate thumbnails</div>
+              <div style={{ fontSize: 13 }}>Upload a font file to generate 8 showcase thumbnails</div>
             </div>
           </div>
         )}

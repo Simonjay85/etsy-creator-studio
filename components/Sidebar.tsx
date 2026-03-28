@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Type, CalendarDays, FileText, Layers, Settings, Sparkles, ChevronRight } from 'lucide-react';
+import { Type, CalendarDays, FileText, Layers, Settings, Sparkles, ChevronRight, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/create/cv', label: 'CV Template', icon: FileText },
   { href: '/create/silhouette', label: 'Silhouette SVG', icon: Layers },
 ];
+
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -50,6 +51,26 @@ export default function Sidebar() {
           <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 1 }}>Listing Studio</div>
         </div>
       </div>
+
+      {/* ✨ Etsy Suite featured link */}
+      <Link href="/etsy-suite" style={{ textDecoration: 'none', display: 'block', margin: '0 0 12px' }}>
+        <div style={{
+          padding: '10px 12px', borderRadius: 'var(--radius-md)',
+          background: 'var(--accent-gradient-subtle)',
+          border: '1px solid rgba(192,132,252,0.3)',
+          display: 'flex', alignItems: 'center', gap: 10,
+          cursor: 'pointer', transition: 'all 0.15s',
+        }}>
+          <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--accent-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Zap size={13} color="white" />
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>Etsy Suite</div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>All-in-one creator</div>
+          </div>
+          <ChevronRight size={12} style={{ marginLeft: 'auto', color: 'var(--accent)', opacity: 0.6 }} />
+        </div>
+      </Link>
 
       {/* Nav section */}
       <div style={{ marginBottom: 8 }}>
