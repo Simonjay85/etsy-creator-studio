@@ -6,7 +6,7 @@ import {
   Copy, Check, X, Upload, Key, Eye, EyeOff, ArrowLeft, Zap,
 } from 'lucide-react';
 
-import { drawFontIntro, drawFontCharSheet, drawFontQuote, drawFontMockup, drawFontApparel, drawFontBagMockup, drawFontSignage, drawFontWebsite } from '@/lib/canvas/font-templates';
+import { drawFontIntro, drawFontCharSheet, drawFontQuote, drawFontMockup, drawFontApparel, drawFontBagMockup, drawFontSignage, drawFontWebsite, drawFontTshirt, drawFontOutfit } from '@/lib/canvas/font-templates';
 import { drawPlannerCover, drawPlannerInside, drawPlannerFeatures, drawPlannerYears } from '@/lib/canvas/planner-templates';
 import { drawCvFront, drawCvSpread, drawCvFeatures } from '@/lib/canvas/cv-templates';
 
@@ -62,6 +62,8 @@ export default function EtsySuitePage() {
   const fontBagRef     = useRef<HTMLCanvasElement>(null);
   const fontSignageRef = useRef<HTMLCanvasElement>(null);
   const fontWebsiteRef = useRef<HTMLCanvasElement>(null);
+  const fontTshirtRef  = useRef<HTMLCanvasElement>(null);
+  const fontOutfitRef  = useRef<HTMLCanvasElement>(null);
   // Planner
   const plannerCoverRef    = useRef<HTMLCanvasElement>(null);
   const plannerInsideRef   = useRef<HTMLCanvasElement>(null);
@@ -72,7 +74,7 @@ export default function EtsySuitePage() {
   const cvSpreadRef   = useRef<HTMLCanvasElement>(null);
   const cvFeaturesRef = useRef<HTMLCanvasElement>(null);
 
-  const fontCanvasRefs = [fontIntroRef, fontCharRef, fontQuoteRef, fontMockRef, fontApparelRef, fontBagRef, fontSignageRef, fontWebsiteRef];
+  const fontCanvasRefs = [fontIntroRef, fontCharRef, fontQuoteRef, fontMockRef, fontApparelRef, fontBagRef, fontSignageRef, fontWebsiteRef, fontTshirtRef, fontOutfitRef];
   const plannerCanvasRefs = [plannerCoverRef, plannerInsideRef, plannerFeaturesRef, plannerYearsRef];
   const cvCanvasRefs = [cvFrontRef, cvSpreadRef, cvFeaturesRef];
 
@@ -160,6 +162,8 @@ export default function EtsySuitePage() {
         if (fontBagRef.current)     drawFontBagMockup(fontBagRef.current, font);
         if (fontSignageRef.current) drawFontSignage(fontSignageRef.current, font);
         if (fontWebsiteRef.current) drawFontWebsite(fontWebsiteRef.current, font);
+        if (fontTshirtRef.current)  drawFontTshirt(fontTshirtRef.current, font);
+        if (fontOutfitRef.current)  drawFontOutfit(fontOutfitRef.current, font);
       } else if (productType === 'planner') {
         if (plannerCoverRef.current)    drawPlannerCover(plannerCoverRef.current, planner);
         if (plannerInsideRef.current)   drawPlannerInside(plannerInsideRef.current, planner);

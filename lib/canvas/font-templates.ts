@@ -1032,3 +1032,215 @@ export function drawFontBenefits(canvas: HTMLCanvasElement, opts: FontMetadata) 
   drawPetal(ctx, 110, SIZE - 90, 75, flowerColor + 'aa');
   drawPetal(ctx, SIZE - 110, SIZE - 90, 75, flowerColor + 'aa');
 }
+
+/** Thumbnail 10 — T-Shirt Close-Up Print Mockup */
+export function drawFontTshirt(canvas: HTMLCanvasElement, opts: FontMetadata) {
+  const ctx = canvas.getContext('2d')!;
+  canvas.width = SIZE; canvas.height = SIZE;
+  const accentColor = getAccentColor(opts.bgStyle);
+  const flowerColor = getFlowerColor(opts.bgStyle);
+  const ff = opts.fontFamilyName || 'Georgia';
+  const fontName = opts.fontName || 'Font Name';
+  const phrase = opts.previewPhrase || 'Create Something';
+
+  // Warm neutral background
+  ctx.fillStyle = '#F5F1EC';
+  ctx.fillRect(0, 0, SIZE, SIZE);
+  drawDotGrid(ctx, 'rgba(0,0,0,0.03)', 55, 2.5);
+
+  // ── HEADER ──
+  ctx.font = 'bold 62px "Helvetica Neue", Arial, sans-serif';
+  ctx.fillStyle = '#2A1F3D';
+  ctx.textAlign = 'center';
+  ctx.fillText('T-SHIRT PRINT MOCKUP', SIZE / 2, 110);
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(SIZE / 2 - 300, 130, 600, 5);
+
+  // ── T-SHIRT SHAPE ──
+  const tx = SIZE / 2, ty = 1100;
+  const bodyColor = '#EFEFEF';
+  const shadowColor = '#D8D0E8';
+
+  // Main body
+  ctx.save();
+  ctx.shadowBlur = 60; ctx.shadowColor = 'rgba(0,0,0,0.18)'; ctx.shadowOffsetY = 20;
+  ctx.beginPath();
+  ctx.moveTo(tx - 580, ty + 720);  // bottom-left
+  ctx.lineTo(tx - 600, ty - 340);  // left body up
+  ctx.lineTo(tx - 500, ty - 480);  // shoulder-left
+  // Left sleeve
+  ctx.lineTo(tx - 760, ty - 600);  // sleeve tip
+  ctx.lineTo(tx - 700, ty - 240);  // sleeve bottom
+  ctx.lineTo(tx - 500, ty - 200);  // armhole
+  // Neck left
+  ctx.quadraticCurveTo(tx - 200, ty - 540, tx, ty - 500);
+  // Neck right
+  ctx.quadraticCurveTo(tx + 200, ty - 540, tx + 500, ty - 200);
+  // Right sleeve
+  ctx.lineTo(tx + 700, ty - 240);
+  ctx.lineTo(tx + 760, ty - 600);
+  ctx.lineTo(tx + 500, ty - 480);
+  ctx.lineTo(tx + 600, ty - 340);
+  ctx.lineTo(tx + 580, ty + 720);
+  ctx.closePath();
+  ctx.fillStyle = bodyColor;
+  ctx.fill();
+  ctx.restore();
+
+  // Sleeve shadow
+  ctx.fillStyle = shadowColor;
+  ctx.beginPath();
+  ctx.moveTo(tx - 500, ty - 480);
+  ctx.lineTo(tx - 760, ty - 600);
+  ctx.lineTo(tx - 700, ty - 240);
+  ctx.lineTo(tx - 500, ty - 200);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(tx + 500, ty - 480);
+  ctx.lineTo(tx + 760, ty - 600);
+  ctx.lineTo(tx + 700, ty - 240);
+  ctx.lineTo(tx + 500, ty - 200);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── FONT PRINT ON SHIRT ──
+  const words = phrase.split(' ');
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#1A0F2D';
+
+  if (words.length >= 2) {
+    const mid = Math.ceil(words.length / 2);
+    const l1 = words.slice(0, mid).join(' ');
+    const l2 = words.slice(mid).join(' ');
+    const fs1 = fitText(ctx, l1, ff, 900, 200, 70);
+    const fs2 = fitText(ctx, l2, ff, 900, 200, 70);
+    ctx.font = `bold ${fs1}px "${ff}", Georgia, serif`;
+    ctx.fillText(l1, tx, ty - 80);
+    ctx.font = `bold ${fs2}px "${ff}", Georgia, serif`;
+    ctx.fillText(l2, tx, ty + 120);
+  } else {
+    const fs = fitText(ctx, phrase, ff, 900, 220, 80);
+    ctx.font = `bold ${fs}px "${ff}", Georgia, serif`;
+    ctx.fillText(phrase, tx, ty + 20);
+  }
+
+  // Small font name under print
+  ctx.font = `36px "${ff}", Georgia, serif`;
+  ctx.fillStyle = `${accentColor}CC`;
+  ctx.textAlign = 'center';
+  ctx.fillText(`— ${fontName} —`, tx, ty + 300);
+
+  // Accent stars flanking print
+  for (const [sx, sy] of [[tx - 280, ty - 180], [tx + 280, ty - 180]] as [number, number][]) {
+    ctx.fillStyle = accentColor;
+    ctx.font = 'bold 50px Arial';
+    ctx.fillText('✦', sx, sy);
+  }
+
+  // ── USE-CASE PILLS ──
+  const useCases = ['T-Shirts', 'Crewneck', 'Kids Tee', 'Tank Top', 'Ringer Tee'];
+  const pW = 290, pH = 70, pGap = 22;
+  const total = useCases.length * pW + (useCases.length - 1) * pGap;
+  let px2 = (SIZE - total) / 2;
+  for (const uc of useCases) {
+    fillRoundRect(ctx, px2, SIZE - 200, pW, pH, 35, `${accentColor}22`);
+    ctx.strokeStyle = accentColor; ctx.lineWidth = 2;
+    roundRect(ctx, px2, SIZE - 200, pW, pH, 35); ctx.stroke();
+    ctx.font = 'bold 32px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillStyle = '#2A1F3D'; ctx.textAlign = 'center';
+    ctx.fillText(uc, px2 + pW / 2, SIZE - 200 + 47);
+    px2 += pW + pGap;
+  }
+
+  // Bottom font name
+  ctx.font = `bold 68px "${ff}", Georgia, serif`;
+  ctx.fillStyle = accentColor;
+  ctx.textAlign = 'center';
+  ctx.fillText(fontName, SIZE / 2, SIZE - 100);
+
+  drawPetal(ctx, 100, SIZE - 100, 70, flowerColor);
+  drawPetal(ctx, SIZE - 100, SIZE - 100, 70, flowerColor);
+}
+
+/** Thumbnail 11 — Outfit Lifestyle Scene (jacket, cap, tote, leggings) */
+export function drawFontOutfit(canvas: HTMLCanvasElement, opts: FontMetadata) {
+  const ctx = canvas.getContext('2d')!;
+  canvas.width = SIZE; canvas.height = SIZE;
+  const accentColor = getAccentColor(opts.bgStyle);
+  const [c1, c2] = getBgColors(opts.bgStyle);
+  const textColor = getTextColor(opts.bgStyle);
+  const flowerColor = getFlowerColor(opts.bgStyle);
+  const ff = opts.fontFamilyName || 'Georgia';
+  const fontName = opts.fontName || 'Font Name';
+  const phrase = opts.previewPhrase || 'Create Something';
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+  grad.addColorStop(0, c1); grad.addColorStop(1, c2);
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, SIZE, SIZE);
+  drawDotGrid(ctx, `${accentColor}10`, 65, 3);
+
+  // ── HEADER ──
+  ctx.font = 'bold 68px "Helvetica Neue", Arial, sans-serif';
+  ctx.fillStyle = textColor; ctx.textAlign = 'center';
+  ctx.fillText('PERFECT FOR MERCH & APPAREL', SIZE / 2, 110);
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(SIZE / 2 - 380, 134, 760, 5);
+
+  // Helper: draw a flat item card
+  const drawCard = (x: number, y: number, w: number, h: number, label: string, phraseText: string) => {
+    ctx.save();
+    ctx.shadowBlur = 35; ctx.shadowColor = 'rgba(0,0,0,0.18)';
+    fillRoundRect(ctx, x, y, w, h, 20, opts.bgStyle === 'dark' ? '#241840' : '#FFFFFF');
+    ctx.restore();
+    ctx.strokeStyle = `${accentColor}44`; ctx.lineWidth = 2;
+    roundRect(ctx, x, y, w, h, 20); ctx.stroke();
+    // accent top bar
+    ctx.fillStyle = accentColor;
+    ctx.fillRect(x, y, w, 10);
+    // label
+    ctx.font = 'bold 36px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillStyle = `${textColor}88`; ctx.textAlign = 'center';
+    ctx.fillText(label, x + w / 2, y + 56);
+    // phrase text in font
+    const pfs = fitText(ctx, phraseText, ff, w - 80, 110, 40);
+    ctx.font = `bold ${pfs}px "${ff}", Georgia, serif`;
+    ctx.fillStyle = textColor;
+    ctx.fillText(phraseText.length > 18 ? phraseText.substring(0, 16) + '…' : phraseText, x + w / 2, y + h / 2 + 30);
+  };
+
+  // ── 4 ITEM CARDS ──
+  const cardW = 820, cardH = 650, gapX = 60, gapY = 48;
+  const gridStartX = (SIZE - (cardW * 2 + gapX)) / 2;
+  const gridStartY = 180;
+
+  const items = [
+    { label: '🧥  Bomber Jacket',  ph: phrase.split(' ').slice(0,2).join(' ') || 'Create' },
+    { label: '🧢  Snapback Cap',   ph: fontName.split(' ')[0] },
+    { label: '👟  Tote Bag',       ph: phrase.split(' ').slice(0,3).join(' ') || 'Beautiful' },
+    { label: '🧣  Hoodie & Jogger',ph: phrase },
+  ];
+
+  items.forEach((item, i) => {
+    const col = i % 2; const row = Math.floor(i / 2);
+    const cx = gridStartX + col * (cardW + gapX);
+    const cy = gridStartY + row * (cardH + gapY);
+    drawCard(cx, cy, cardW, cardH, item.label, item.ph);
+    // Decorative flower in corner
+    drawPetal(ctx, cx + cardW - 60, cy + 60, 40, `${accentColor}55`);
+  });
+
+  // ── BOTTOM FONT LABEL ──
+  const bfs = fitText(ctx, `${fontName} Font`, ff, SIZE - 300, 88, 36);
+  ctx.font = `bold ${bfs}px "${ff}", Georgia, serif`;
+  ctx.fillStyle = accentColor; ctx.textAlign = 'center';
+  ctx.fillText(`${fontName} Font`, SIZE / 2, SIZE - 100);
+
+  ctx.font = '38px "Helvetica Neue", Arial, sans-serif';
+  ctx.fillStyle = `${textColor}66`;
+  ctx.fillText('Commercial License · Ready for Print-on-Demand', SIZE / 2, SIZE - 44);
+
+  drawPetal(ctx, 100, SIZE - 80, 65, flowerColor);
+  drawPetal(ctx, SIZE - 100, SIZE - 80, 65, flowerColor);
+}

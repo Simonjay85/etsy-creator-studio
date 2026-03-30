@@ -57,6 +57,8 @@ export const FONT_THUMBNAILS: ThumbnailSpec[] = [
   { key: 'bag',      label: 'Bag & Accessories', filename: 'font-bag-mockup' },
   { key: 'signage',  label: 'Signage & Branding',filename: 'font-signage-mockup' },
   { key: 'website',  label: 'Website & Social',  filename: 'font-website-mockup' },
+  { key: 'tshirt',   label: 'T-Shirt Mockup',    filename: 'font-tshirt-mockup' },
+  { key: 'outfit',   label: 'Outfit Scene',       filename: 'font-outfit-scene' },
 ];
 
 export const PLANNER_THUMBNAILS: ThumbnailSpec[] = [

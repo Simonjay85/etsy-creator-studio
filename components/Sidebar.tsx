@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Type, CalendarDays, FileText, Layers, Settings, Sparkles, ChevronRight, Zap } from 'lucide-react';
+import { Type, CalendarDays, FileText, Layers, Settings, Sparkles, ChevronRight, Zap, ShoppingBag } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const navItems = [
@@ -88,6 +88,18 @@ export default function Sidebar() {
             </Link>
           );
         })}
+      </div>
+
+      {/* Publish section */}
+      <div style={{ marginBottom: 8 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', padding: '8px 12px 6px', textTransform: 'uppercase' }}>
+          Publish
+        </div>
+        <Link href="/listing" className={`sidebar-link ${pathname === '/listing' || pathname.startsWith('/listing') ? 'active' : ''}`}>
+          <ShoppingBag size={16} />
+          <span style={{ flex: 1 }}>Listing Builder</span>
+          {(pathname === '/listing' || pathname.startsWith('/listing')) && <ChevronRight size={12} style={{ opacity: 0.5 }} />}
+        </Link>
       </div>
 
       {/* Spacer */}
