@@ -285,9 +285,22 @@ function drawDesignOnProduct(
   ctx.restore();
 }
 
-/** Photo-based print areas: [printX%, printY%, printW%, printH%] relative to the drawn mockup image bounds.
- *  These values position the print area ON the visible product in the photo.
- *  Adjust these if the product photo changes. */
+/** Per-product mockup position settings */
+type MockupPerProduct = { scale: number; offsetX: number; offsetY: number };
+const MOCKUP_PRODUCTS = [
+  { type: 'tshirt',  title: 'T-Shirts & Apparel',  color: '#4A90D9' },
+  { type: 'totebag', title: 'Tote Bags',            color: '#6BBF59' },
+  { type: 'mug',     title: 'Mugs & Cups',          color: '#666' },
+  { type: 'sticker', title: 'Stickers & Decals',    color: '#F5A623' },
+  { type: 'card',    title: 'Cards & Invitations',  color: '#9B59B6' },
+  { type: 'frame',   title: 'Wall Art & Frames',    color: '#2980B9' },
+];
+const DEFAULT_MOCKUP: MockupPerProduct = { scale: 0.85, offsetX: 0, offsetY: 0 };
+const INIT_MOCKUP_SETTINGS = () =>
+  Object.fromEntries(MOCKUP_PRODUCTS.map(p => [p.type, { ...DEFAULT_MOCKUP }])) as Record<string, MockupPerProduct>;
+
+
+
 const MOCKUP_PRINT_AREAS: Record<string, [number, number, number, number]> = {
   tshirt:  [0.30, 0.32, 0.40, 0.37], // center chest of t-shirt
   totebag: [0.22, 0.45, 0.56, 0.38], // center of tote bag body
@@ -304,8 +317,7 @@ async function drawProductMock(
   x: number, y: number, w: number, h: number,
   _color: string,
   designImg: HTMLImageElement | null,
-  mockupScale = 0.85,
-  mockupOffsetY = 0.0
+  settings: MockupPerProduct = DEFAULT_MOCKUP
 ) {
   const mockupSrc = `/mockups/${type}.png`;
   try {
@@ -332,11 +344,11 @@ async function drawProductMock(
       ctx.rect(printX, printY, printW, printH);
       ctx.clip();
 
-      // Apply scale factor from slider
-      const scaledW = printW * mockupScale;
-      const scaledH = printH * mockupScale;
-      // Apply vertical offset from slider (shift within print area)
-      const offsetPx = printH * mockupOffsetY;
+      // Apply scale + X/Y offset from per-product settings
+      const scaledW = printW * settings.scale;
+      const scaledH = printH * settings.scale;
+      const offsetPxY = printH * settings.offsetY;
+      const offsetPxX = printW * settings.offsetX;
 
       // Draw design centered & contained with scale applied
       const iA2 = designImg.naturalWidth / designImg.naturalHeight;
@@ -344,8 +356,8 @@ async function drawProductMock(
       let ddw: number, ddh: number;
       if (iA2 > cA2) { ddw = scaledW; ddh = scaledW / iA2; }
       else { ddh = scaledH; ddw = scaledH * iA2; }
-      const ddx = printX + (printW - ddw) / 2;
-      const ddy = printY + offsetPx + (printH - ddh) / 2;
+      const ddx = printX + offsetPxX + (printW - ddw) / 2;
+      const ddy = printY + offsetPxY + (printH - ddh) / 2;
 
       ctx.globalAlpha = 0.88;
       ctx.drawImage(designImg, ddx, ddy, ddw, ddh);
@@ -373,8 +385,7 @@ async function drawSilhouetteUsage(
   o: { name: string; primaryColor: string; bgColor: string; silhouetteType: string },
   shapeImg: HTMLImageElement | null = null,
   images: string[] = [],
-  mockupScale = 0.85,
-  mockupOffsetY = 0.0
+  allSettings: Record<string, MockupPerProduct> = {}
 ) {
   const ctx = canvas.getContext('2d')!; canvas.width = 2000; canvas.height = 2000;
   const pc = o.primaryColor || '#1A1A1A';
@@ -397,15 +408,8 @@ async function drawSilhouetteUsage(
   ctx.fillText('PERFECT FOR', 1000, 145);
   ctx.fillStyle = `${pc}33`; ctx.fillRect(400, 170, 1200, 5);
 
-  // 6 product cards in 3×2 grid
-  const products = [
-    { title: 'T-Shirts & Apparel', type: 'tshirt', color: '#4A90D9' },
-    { title: 'Tote Bags', type: 'totebag', color: '#6BBF59' },
-    { title: 'Mugs & Cups', type: 'mug', color: pc },
-    { title: 'Stickers & Decals', type: 'sticker', color: '#F5A623' },
-    { title: 'Cards & Invitations', type: 'card', color: '#9B59B6' },
-    { title: 'Wall Art & Frames', type: 'frame', color: '#2980B9' },
-  ];
+  // 6 product cards in 3×2 grid — use shared MOCKUP_PRODUCTS list
+  const products = MOCKUP_PRODUCTS;
 
   const cols3 = 3, rows3 = 2;
   const uG = 48;
@@ -428,7 +432,8 @@ async function drawSilhouetteUsage(
     // Product mockup (top 75% of card)
     const mockPad = 28;
     const mockH = Math.floor(uH * 0.72);
-    await drawProductMock(ctx, prod.type, ux + mockPad, uy + mockPad, uW - mockPad * 2, mockH - mockPad, prod.color, designImg, mockupScale, mockupOffsetY);
+    const ms = allSettings[prod.type] ?? DEFAULT_MOCKUP;
+    await drawProductMock(ctx, prod.type, ux + mockPad, uy + mockPad, uW - mockPad * 2, mockH - mockPad, prod.color, designImg, ms);
 
     // Product label
     ctx.font = `bold 42px "Helvetica Neue",Arial,sans-serif`; ctx.fillStyle = pc; ctx.textAlign = 'center';
@@ -1104,6 +1109,13 @@ async function drawCollageFormats(
 }
 
 export default function SilhouetteCreatorPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null; // Server always renders nothing → no hydration mismatch
+  return <SilhouetteCreatorInner />;
+}
+
+function SilhouetteCreatorInner() {
 
   const [name, setName] = useState('');
   const [count, setCount] = useState('50');
@@ -1119,10 +1131,11 @@ export default function SilhouetteCreatorPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [toast, setToast] = useState('');
   const [renderTick, setRenderTick] = useState(0);
-  const [mockupScale, setMockupScale] = useState(0.85);   // 0.3–1.0: design size on product
-  const [mockupOffsetY, setMockupOffsetY] = useState(0.0); // -0.2–0.2: shift design up/down
+  const [mockupSettings, setMockupSettings] = useState<Record<string, MockupPerProduct>>(INIT_MOCKUP_SETTINGS);
+  const [expandedMockup, setExpandedMockup] = useState<string | null>(null);
   const [shapeImgSrc, setShapeImgSrc] = useState<string | null>(null);
   const shapeImgRef = useRef<HTMLImageElement | null>(null);
+  const mockupSettingsKey = JSON.stringify(mockupSettings);
 
   // Preload selected shape image whenever it changes
   useEffect(() => {
@@ -1172,7 +1185,7 @@ export default function SilhouetteCreatorPage() {
     const doRender = async () => {
       const si = shapeImgRef.current;
       if (coverRef.current)   await drawSilhouetteCover(coverRef.current, o, o.images, si);
-      if (usageRef.current)   await drawSilhouetteUsage(usageRef.current, o, si, o.images, mockupScale, mockupOffsetY);
+      if (usageRef.current)   await drawSilhouetteUsage(usageRef.current, o, si, o.images, mockupSettings);
       if (fmtRef.current)     drawSilhouetteFormats(fmtRef.current, o);
       if (uploadsRef.current) await drawUploadedGrid(uploadsRef.current, o.images, o);
       if (descRef.current)    drawSilhouetteDescription(descRef.current, o);
@@ -1181,7 +1194,7 @@ export default function SilhouetteCreatorPage() {
     };
     const t = setTimeout(doRender, 30);
     return () => clearTimeout(t);
-  }, [renderTick, name, count, primaryColor, bgColor, activeShapeType, uploadedImages, description, youWillGet, customShapeType, shapeImgSrc, mockupScale, mockupOffsetY]);
+  }, [renderTick, name, count, primaryColor, bgColor, activeShapeType, uploadedImages, description, youWillGet, customShapeType, shapeImgSrc, mockupSettingsKey]);
 
   const downloadAll = async () => {
     const zip = new JSZip();
@@ -1414,39 +1427,88 @@ export default function SilhouetteCreatorPage() {
             </div>
           </div>
 
-          {/* Mockup design adjustments */}
-          <div>
-            <label className="label" style={{ marginBottom: 8, display: 'block' }}>🎯 Design on Mockup</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Size</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{Math.round(mockupScale * 100)}%</span>
-                </div>
-                <input
-                  type="range" min={20} max={100} step={1}
-                  value={Math.round(mockupScale * 100)}
-                  onChange={e => setMockupScale(Number(e.target.value) / 100)}
-                  style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
-                />
-              </div>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Vertical Position</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{mockupOffsetY > 0 ? '+' : ''}{Math.round(mockupOffsetY * 100)}%</span>
-                </div>
-                <input
-                  type="range" min={-30} max={30} step={1}
-                  value={Math.round(mockupOffsetY * 100)}
-                  onChange={e => setMockupOffsetY(Number(e.target.value) / 100)}
-                  style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
-                />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
-                  <span>↑ Move Up</span><span>↓ Move Down</span>
-                </div>
-              </div>
+          {/* Per-mockup controls */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+              <label className="label" style={{ margin: 0 }}>🎯 Mockup Design</label>
+              <button
+                onClick={() => setMockupSettings(INIT_MOCKUP_SETTINGS())}
+                style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}
+              >Reset All</button>
             </div>
+
+            {/* Apply-to-All shortcuts */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
+              {[['Sm', 0.55], ['Md', 0.75], ['Lg', 0.92]].map(([lbl, val]) => (
+                <button key={lbl as string}
+                  onClick={() => setMockupSettings(prev => Object.fromEntries(Object.entries(prev).map(([k, v]) => [k, { ...v, scale: val as number }])))}
+                  style={{ flex: 1, fontSize: 10, padding: '3px 0', borderRadius: 4, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                >{lbl}</button>
+              ))}
+            </div>
+
+            {/* Per-product accordion */}
+            {MOCKUP_PRODUCTS.map(prod => {
+              const ms = mockupSettings[prod.type] ?? DEFAULT_MOCKUP;
+              const isOpen = expandedMockup === prod.type;
+              const [ppx, ppy, ppw, pph] = MOCKUP_PRINT_AREAS[prod.type] ?? [0.25, 0.25, 0.5, 0.5];
+              return (
+                <div key={prod.type} style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                  {/* Header row */}
+                  <div
+                    onClick={() => setExpandedMockup(isOpen ? null : prod.type)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', cursor: 'pointer', background: isOpen ? 'rgba(139,92,246,0.1)' : 'transparent', userSelect: 'none' }}
+                  >
+                    {/* Miniature product preview with print area highlight */}
+                    <div style={{ width: 34, height: 34, position: 'relative', flexShrink: 0, borderRadius: 4, overflow: 'hidden', background: '#fff', border: '1px solid #eee' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/mockups/${prod.type}.png`} alt={prod.title} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+                      <div style={{
+                        position: 'absolute',
+                        left: `${ppx * 100}%`, top: `${ppy * 100}%`,
+                        width: `${ppw * 100}%`, height: `${pph * 100}%`,
+                        background: 'rgba(139,92,246,0.30)',
+                        border: '1px solid rgba(139,92,246,0.8)',
+                        borderRadius: 2,
+                      }} />
+                    </div>
+                    <span style={{ flex: 1, fontSize: 11, fontWeight: 600 }}>{prod.title}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{Math.round(ms.scale * 100)}%</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: 2 }}>{isOpen ? '▲' : '▼'}</span>
+                  </div>
+
+                  {/* Expanded sliders */}
+                  {isOpen && (
+                    <div style={{ padding: '10px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {[
+                        { label: 'Size', key: 'scale' as const, min: 20, max: 100, value: Math.round(ms.scale * 100), fmt: (v: number) => `${v}%`, parse: (v: number) => v / 100 },
+                        { label: '← Left / Right →', key: 'offsetX' as const, min: -30, max: 30, value: Math.round(ms.offsetX * 100), fmt: (v: number) => v === 0 ? '0%' : (v > 0 ? `+${v}%` : `${v}%`), parse: (v: number) => v / 100 },
+                        { label: '↑ Up / Down ↓', key: 'offsetY' as const, min: -30, max: 30, value: Math.round(ms.offsetY * 100), fmt: (v: number) => v === 0 ? '0%' : (v > 0 ? `+${v}%` : `${v}%`), parse: (v: number) => v / 100 },
+                      ].map(({ label, key, min, max, value, fmt, parse }) => (
+                        <div key={key}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                            <span style={{ fontSize: 10, color: 'var(--text-secondary)' }}>{label}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)' }}>{fmt(value)}</span>
+                          </div>
+                          <input
+                            type="range" min={min} max={max} step={1} value={value}
+                            onChange={e => setMockupSettings(prev => ({ ...prev, [prod.type]: { ...prev[prod.type], [key]: parse(Number(e.target.value)) } }))}
+                            style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
+                          />
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => setMockupSettings(prev => ({ ...prev, [prod.type]: { ...DEFAULT_MOCKUP } }))}
+                        style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)', alignSelf: 'flex-start' }}
+                      >↺ Reset</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
+
+
 
           <button className="btn btn-primary" style={{ width: '100%' }} onClick={generate}><Plus size={14} />Generate Thumbnails</button>
           <div className="divider" style={{ margin: 0 }} />
